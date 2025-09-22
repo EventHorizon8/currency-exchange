@@ -23,3 +23,28 @@ composer install
 php bin/console doctrine:migrations:migrate
 
 ```
+
+```dotenv
+# Set up CURRENCY_API_KEY in .env.local file
+CURRENCY_API_KEY=your_api_key_here
+# You can get a free API key from https://www.exchangerate-api.com/
+
+```
+
+
+### Testing
+
+***Preparing the Database***
+```shell
+# Create
+php bin/console --env=test doctrine:database:create
+# Migrate
+php bin/console --env=test doctrine:migrations:migrate
+```
+
+***Running Unit tests***
+```shell
+# Run all Unit Tests
+php bin/phpunit
+
+```
