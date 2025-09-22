@@ -46,7 +46,9 @@ readonly class ExchangeRateService
      */
     public function getLatestExchangeRate(string $fromCurrency, string $toCurrency): ?float
     {
-        if (strtoupper($fromCurrency) === strtoupper($toCurrency)) {
+        $fromCurrency = strtoupper($fromCurrency);
+        $toCurrency = strtoupper($toCurrency);
+        if ($fromCurrency === $toCurrency) {
             return 1.0;
         }
 
