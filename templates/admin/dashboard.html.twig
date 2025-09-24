@@ -92,7 +92,10 @@
             <div class="card">
                 <div class="card-header">
                     <h3>Recent Rates</h3>
-                    <span>{{ recentRates[0].createdAt | date("Y-m-d") }}</span>
+                    {% if recentRates[0] is defined %}
+                        <span>{{ recentRates[0].createdAt | date("Y-m-d") }}</span>
+                    {% endif %}
+
                 </div>
                 <div class="card-body">
                     <div id="recent-rates">

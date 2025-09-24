@@ -60,7 +60,7 @@ RUN apk add --no-cache --virtual .build-deps $PHPIZE_DEPS \
 COPY supervisord.conf /etc/supervisord.conf
 
 # Setting up CRON jobs
-# RUN echo "0 5 * * *	php /var/www/html/bin/console app:run-24h-job" >> /etc/crontabs/root
+RUN echo "0 5 * * *	php /var/www/html/bin/console currency:load-exchange-rate" >> /etc/crontabs/root
 # RUN echo "*/5 * * * *	php /var/www/html/bin/console app:run-5m-job" >> /etc/crontabs/root
 
 ## Install WP-CLI
