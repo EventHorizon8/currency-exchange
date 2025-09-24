@@ -37,8 +37,8 @@ class ExchangeRateServiceTest extends TestCase
     public function testNoRateFoundReturnsNull(): void
     {
         $this->exchangeRateRepository
-            ->method('findLatestRate')
-            ->willReturn(null);
+            ->method('findLatestRatesByIso')
+            ->willReturn([]);
 
         $this->assertNull($this->service->getLatestExchangeRate('USD', 'EUR'));
     }
@@ -47,11 +47,14 @@ class ExchangeRateServiceTest extends TestCase
     {
         $rate = $this->createMock(ExchangeRate::class);
         $rate->method('getRate')->willReturn(0.9);
+        $rate->method('getIsoCode')->willReturn('EUR');
 
         $this->exchangeRateRepository
-            ->method('findLatestRate')
-            ->with('EUR')
-            ->willReturn($rate);
+            ->method('findLatestRatesByIso')
+            ->with($this->callback(function (array $isoCodes) {
+                return in_array('EUR', $isoCodes, true);
+            }))
+            ->willReturn([$rate]);
 
         $this->assertSame(0.9, $this->service->getLatestExchangeRate('USD', 'EUR'));
     }
@@ -60,11 +63,14 @@ class ExchangeRateServiceTest extends TestCase
     {
         $rate = $this->createMock(ExchangeRate::class);
         $rate->method('getRate')->willReturn(0.8);
+        $rate->method('getIsoCode')->willReturn('GBP');
 
         $this->exchangeRateRepository
-            ->method('findLatestRate')
-            ->with('GBP')
-            ->willReturn($rate);
+            ->method('findLatestRatesByIso')
+            ->with($this->callback(function (array $isoCodes) {
+                return in_array('GBP', $isoCodes, true);
+            }))
+            ->willReturn([$rate]);
 
         $this->assertSame(1 / 0.8, $this->service->getLatestExchangeRate('GBP', 'USD'));
     }
@@ -73,15 +79,17 @@ class ExchangeRateServiceTest extends TestCase
     {
         $eurRate = $this->createMock(ExchangeRate::class);
         $eurRate->method('getRate')->willReturn(0.9);
+        $eurRate->method('getIsoCode')->willReturn('EUR');
 
         $gbpRate = $this->createMock(ExchangeRate::class);
         $gbpRate->method('getRate')->willReturn(0.8);
+        $gbpRate->method('getIsoCode')->willReturn('GBP');
 
         $this->exchangeRateRepository
-            ->method('findLatestRate')
-            ->willReturnMap([
-                ['EUR', $eurRate],
-                ['GBP', $gbpRate],
+            ->method('findLatestRatesByIso')
+            ->willReturn([
+                $eurRate,
+                $gbpRate,
             ]);
 
         $this->assertSame(0.9 / 0.8, $this->service->getLatestExchangeRate('GBP', 'EUR'));

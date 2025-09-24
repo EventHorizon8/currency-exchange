@@ -52,31 +52,30 @@ readonly class ExchangeRateService
             return 1.0;
         }
 
-        $toExchangeRate = null;
-        if ($toCurrency !== $this->baseCurrency) {
-            $toExchangeRate = $this->exchangeRateRepository->findLatestRate($toCurrency);
-            if ($toExchangeRate === null) {
-                return null;
-            }
-        }
+        $leftExchangeRates = array_diff([$fromCurrency, $toCurrency], [$this->baseCurrency]);
 
+        $exchangeRates = $this->exchangeRateRepository->findLatestRatesByIso($leftExchangeRates);
+
+        $toExchangeRate = null;
         $fromExchangeRate = null;
-        if ($fromCurrency !== $this->baseCurrency) {
-            $fromExchangeRate = $this->exchangeRateRepository->findLatestRate($fromCurrency);
-            if ($fromExchangeRate === null) {
-                return null;
+
+        foreach ($exchangeRates as $exchangeRate) {
+            if ($exchangeRate->getIsoCode() === $toCurrency) {
+                $toExchangeRate = $exchangeRate;
+            }
+            if ($exchangeRate->getIsoCode() === $fromCurrency) {
+                $fromExchangeRate = $exchangeRate;
             }
         }
 
         if ($fromCurrency === $this->baseCurrency) {
-            return $toExchangeRate->getRate();
+            return $toExchangeRate ? $toExchangeRate->getRate() : null;
         }
+
         if ($toCurrency === $this->baseCurrency) {
-            return 1 / $fromExchangeRate->getRate();
+            return $fromExchangeRate ? 1 / $fromExchangeRate->getRate() : null;
         }
 
         return $toExchangeRate->getRate() / $fromExchangeRate->getRate();
     }
-
-
 }
