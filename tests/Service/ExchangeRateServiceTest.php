@@ -13,19 +13,17 @@ use PHPUnit\Framework\TestCase;
 
 class ExchangeRateServiceTest extends TestCase
 {
-    private EntityManagerInterface $em;
-    private CurrencyClientInterface $currencyClient;
     private ExchangeRateRepository $exchangeRateRepository;
     private ExchangeRateService $service;
 
     protected function setUp(): void
     {
-        $this->em = $this->createMock(EntityManagerInterface::class);
-        $this->currencyClient = $this->createMock(CurrencyClientInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $currencyClient = $this->createMock(CurrencyClientInterface::class);
         $this->exchangeRateRepository = $this->createMock(ExchangeRateRepository::class);
         $this->service = new ExchangeRateService(
-            $this->em,
-            $this->currencyClient,
+            $em,
+            $currencyClient,
             $this->exchangeRateRepository,
             'USD'
         );
