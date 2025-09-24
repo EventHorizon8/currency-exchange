@@ -35,6 +35,11 @@ class ExchangeRateRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    /**
+     * Find the latest active exchange rates, which set in limited by the specified number.
+     * @param int $limit
+     * @return array
+     */
     public function findLatestActiveRates(int $limit = self::DEFAULT_LIMIT): array
     {
         return $this->createQueryBuilder('er')
