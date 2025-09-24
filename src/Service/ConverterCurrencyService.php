@@ -30,4 +30,20 @@ readonly class ConverterCurrencyService
         }
         return round($amount * $rate, 2);
     }
+
+    /**
+     * get rate by currency pair
+     * @param string $fromCurrency
+     * @param string $toCurrency
+     * @return float
+     * @throws ExchangeRateNotFoundException
+     */
+    public function getRate(string $fromCurrency, string $toCurrency): float
+    {
+        $rate = $this->exchangeRateService->getLatestExchangeRate($fromCurrency, $toCurrency);
+        if ($rate === null) {
+            throw new ExchangeRateNotFoundException("Exchange rate not found for $fromCurrency to $toCurrency");
+        }
+        return $rate;
+    }
 }

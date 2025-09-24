@@ -85,4 +85,13 @@ class ExchangeRate
     {
         return $this->setCreatedAt(new \DateTimeImmutable());
     }
+
+    /**
+     * This is for virtual field in EasyAdmin to show status, otherwise it will throw error.
+     * @return string|null
+     */
+    public function getStatus(): ?string
+    {
+        return 'Undefined';
+    }
 }

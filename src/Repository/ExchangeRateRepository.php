@@ -13,6 +13,7 @@ use Doctrine\Persistence\ManagerRegistry;
  */
 class ExchangeRateRepository extends ServiceEntityRepository
 {
+    private const int DEFAULT_LIMIT = 10;
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, ExchangeRate::class);
@@ -32,5 +33,16 @@ class ExchangeRateRepository extends ServiceEntityRepository
             ->setMaxResults(1)
             ->getQuery()
             ->getOneOrNullResult();
+    }
+
+    public function findLatestActiveRates(int $limit = self::DEFAULT_LIMIT): array
+    {
+        return $this->createQueryBuilder('er')
+            ->innerJoin('App\Entity\Currency', 'c', 'WITH', 'er.isoCode = c.isoCode')
+            ->orderBy('er.createdAt', 'DESC')
+            ->addOrderBy('er.isoCode', 'ASC')
+            ->setMaxResults($limit)
+            ->getQuery()
+            ->getResult();
     }
 }

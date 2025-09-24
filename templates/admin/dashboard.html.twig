@@ -1,0 +1,200 @@
+{% extends '@EasyAdmin/page/content.html.twig' %}
+
+{% block content_title %}
+    <h1 class="title">Currency Management Dashboard</h1>
+{% endblock %}
+
+{% block main %}
+    <div class="row">
+        <!-- Currency Exchange Form -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="title">Currency Exchange</h3>
+                </div>
+                <div class="card-body">
+                    <form id="currency-exchange-form">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="fromCurrencyIso">From Currency</label>
+                                    <select id="fromCurrencyIso" name="fromCurrencyIso" class="form-control" required>
+                                        <option value="">Select currency...</option>
+                                        {% for currency in currencies %}
+                                            <option value="{{ currency.isoCode }}">{{ currency.isoCode }} - {{ currency.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="toCurrencyIso">To Currency</label>
+                                    <select id="toCurrencyIso" name="toCurrencyIso" class="form-control" required>
+                                        <option value="">Select currency...</option>
+                                        {% for currency in currencies %}
+                                            <option value="{{ currency.isoCode }}">{{ currency.isoCode }} - {{ currency.name }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="amount">Amount</label>
+                                    <input type="number" id="amount" name="amount" class="form-control"
+                                           step="0.01" min="0" required placeholder="Enter amount">
+                                </div>
+                            </div>
+                            <div class="col-md-6 d-flex align-items-end">
+                                <div class="form-group">
+                                    <button type="submit" class="btn btn-primary btn-block">
+                                        <i class="fa fa-calculator"></i> Convert
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Exchange Result -->
+                    <div id="exchange-result" class="mt-4" style="display: none;">
+                        <div class="alert alert-success">
+                            <h4>Exchange Result</h4>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <p class="mb-2">
+                                        <strong><span id="result-amount"></span> <span id="result-from-currency"></span></strong> =
+                                        <strong><span id="result-converted-amount"></span> <span id="result-to-currency"></span></strong>
+                                    </p>
+                                    <p class="mb-0">
+                                        <small class="text-muted">Exchange Rate: 1 <span id="result-rate-from"></span> = <span id="result-rate"></span> <span id="result-rate-to"></span></small>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div id="exchange-error" class="mt-4" style="display: none;">
+                        <div class="alert alert-danger">
+                            <h4>Error</h4>
+                            <p id="error-message"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="col-md-4">
+            <!-- Recent Exchange Rates -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Recent Rates</h3>
+                    <span>{{ recentRates[0].createdAt | date("Y-m-d") }}</span>
+                </div>
+                <div class="card-body">
+                    <div id="recent-rates">
+                        {% for rate in recentRates %}
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>{{ rate.isoCode }}</strong> to <strong>{{ rate.baseCurrencyIso }}</strong>
+                                </div>
+                                <div>
+                                    <span>{{ rate.rate | number_format(4) }}</span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <p class="text-muted">No recent exchange rates available.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block body_javascript %}
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+           // loadCurrencies();
+           // loadStats();
+
+            // Handle form submission
+            document.getElementById('currency-exchange-form').addEventListener('submit', function(e) {
+                e.preventDefault();
+                performExchange();
+            });
+        });
+
+
+        async function performExchange() {
+            const formData = {
+                fromCurrencyIso: document.getElementById('fromCurrencyIso').value,
+                toCurrencyIso: document.getElementById('toCurrencyIso').value,
+                amount: parseFloat(document.getElementById('amount').value)
+            };
+
+            if (!formData.fromCurrencyIso || !formData.toCurrencyIso || !formData.amount) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            if (formData.amount <= 0) {
+                showError('Amount must be greater than 0');
+                return;
+            }
+
+            try {
+                const response = await fetch('/currency-exchange/convert', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showResult(result, formData.amount);
+                } else {
+                    showError(result.error || 'Conversion failed');
+                }
+            } catch (error) {
+                console.error('Error performing exchange:', error);
+                showError('Network error occurred');
+            }
+        }
+
+        function showResult(result, originalAmount) {
+            // Hide error if visible
+            document.getElementById('exchange-error').style.display = 'none';
+
+            // Update result display
+            document.getElementById('result-amount').textContent = originalAmount.toLocaleString();
+            document.getElementById('result-from-currency').textContent = result.fromCurrencyIso;
+            document.getElementById('result-converted-amount').textContent = result.convertedAmount.toLocaleString();
+            document.getElementById('result-to-currency').textContent = result.toCurrencyIso;
+            document.getElementById('result-rate-from').textContent = result.fromCurrencyIso;
+            document.getElementById('result-rate').textContent = Number(result.rate).toFixed(4).toLocaleString();
+            document.getElementById('result-rate-to').textContent = result.toCurrencyIso;
+
+            // Show result
+            document.getElementById('exchange-result').style.display = 'block';
+        }
+
+        function showError(message) {
+            // Hide result if visible
+            document.getElementById('exchange-result').style.display = 'none';
+
+            // Update error message
+            document.getElementById('error-message').textContent = message;
+
+            // Show error
+            document.getElementById('exchange-error').style.display = 'block';
+        }
+    </script>
+{% endblock %}
