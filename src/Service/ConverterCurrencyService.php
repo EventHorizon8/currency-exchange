@@ -6,11 +6,12 @@ namespace App\Service;
 
 use App\Exception\ExchangeRateNotFoundException;
 
-readonly class ConverterCurrencyService
+class ConverterCurrencyService
 {
 
     public function __construct(
-        private ExchangeRateService $exchangeRateService
+        private readonly ExchangeRateService $exchangeRateService,
+        private array $ratesCache = []
     ) {
     }
 
@@ -24,10 +25,7 @@ readonly class ConverterCurrencyService
      */
     public function convert(float $amount, string $fromCurrency, string $toCurrency): float
     {
-        $rate = $this->exchangeRateService->getLatestExchangeRate($fromCurrency, $toCurrency);
-        if ($rate === null) {
-            throw new ExchangeRateNotFoundException("Exchange rate not found for $fromCurrency to $toCurrency");
-        }
+        $rate = $this->getRate($fromCurrency, $toCurrency);
         return round($amount * $rate, 2);
     }
 
@@ -40,10 +38,17 @@ readonly class ConverterCurrencyService
      */
     public function getRate(string $fromCurrency, string $toCurrency): float
     {
-        $rate = $this->exchangeRateService->getLatestExchangeRate($fromCurrency, $toCurrency);
-        if ($rate === null) {
-            throw new ExchangeRateNotFoundException("Exchange rate not found for $fromCurrency to $toCurrency");
+        $currencyKey = strtoupper($fromCurrency) . '_' . strtoupper($toCurrency);
+
+        if(!isset($this->ratesCache[$currencyKey])) {
+            $rate = $this->exchangeRateService->getLatestExchangeRate($fromCurrency, $toCurrency);
+            if ($rate === null) {
+                throw new ExchangeRateNotFoundException("Exchange rate not found for $fromCurrency to $toCurrency");
+            }
+
+            $this->ratesCache[$currencyKey] = $rate;
         }
-        return $rate;
+
+        return $this->ratesCache[$currencyKey];
     }
 }

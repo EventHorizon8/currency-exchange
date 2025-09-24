@@ -7,8 +7,10 @@ namespace App\Tests\Service;
 use App\Exception\ExchangeRateNotFoundException;
 use App\Service\ConverterCurrencyService;
 use App\Service\ExchangeRateService;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
+#[CoversMethod(ConverterCurrencyService::class, 'convert')]
 class ConverterCurrencyServiceTest extends TestCase
 {
     public function testConvertReturnsRoundedAmount(): void

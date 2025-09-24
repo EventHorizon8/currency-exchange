@@ -9,8 +9,10 @@ use App\Repository\ExchangeRateRepository;
 use App\Service\Client\CurrencyClientInterface;
 use App\Service\ExchangeRateService;
 use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\Attributes\CoversMethod;
 use PHPUnit\Framework\TestCase;
 
+#[CoversMethod(ExchangeRateService::class, 'findLatestRatesByIso')]
 class ExchangeRateServiceTest extends TestCase
 {
     private ExchangeRateRepository $exchangeRateRepository;

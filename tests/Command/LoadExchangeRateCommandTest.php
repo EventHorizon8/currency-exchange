@@ -6,10 +6,12 @@ namespace App\Tests\Command;
 
 use App\Command\LoadExchangeRateCommand;
 use App\Service\ExchangeRateService;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Application;
 use Symfony\Component\Console\Tester\CommandTester;
 
+#[CoversClass(LoadExchangeRateCommand::class)]
 class LoadExchangeRateCommandTest extends TestCase
 {
     public function testExecuteCallsServiceAndOutputsMessages(): void
